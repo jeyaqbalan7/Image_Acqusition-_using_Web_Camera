@@ -1,132 +1,93 @@
-# Image_Acqusition-_using_Web_Camera
-## Aim:
-To write a python program using OpenCV to capture the image from the web camera and do the following image manipulations.
+# Real_Time_Object_Detection->
+### Reg no :212222240073
+### Name : Pradeepraj P
+## Aim :
+Read and detect the object using yolov4(python)
 
-i) Write the frame as JPG 
-
-ii) Display the video 
-
-iii) Display the video by resizing the window
-
-iv) Rotate and display the video
-
-## Software Used
-Anaconda - Python 3.7
-## Algorithm
-### Step 1:
-Import necessary libraries (cv2).
-<br>
-
-### Step 2:
-Open the camera using cv2.VideoCapture(0).
-<br>
-
-### Step 3:
-Enter a loop to continuously capture frames from the camera.
-<br>
-
-### Step 4:
-Resize each frame, create a blank image, divide it into quadrants, and assign resized frames accordingly. Rotate specific frames if needed.
-<br>
-
-### Step 5:
-Display processed frames on the screen using cv2.imshow(), and continuously check for a termination signal (e.g., pressing 'q' key) to break out of the loop.
-<br>
-
-## Program:
-## i) Write the frame as JPG file
-```python
-import cv2
-viedoCaptureObject=cv2.VideoCapture(0)
-while(True):
-    ret,frame=viedoCaptureObject.read()
-    cv2.imwrite("image.jpg",frame)
-    result=False
-viedoCaptureObject.release()
-cv2.destroyAllWindows()
+## Program :
 ```
-## ii) Display the video
-```python
-import numpy as np
 import cv2
-cap=cv2.VideoCapture(0)
+import numpy as np
+
+# Load YOLOv4 network
+net = cv2.dnn.readNet("yolov4.weights", "yolov4.cfg")
+
+# Load the COCO class labels
+with open("coco.names", "r") as f:
+    classes = [line.strip() for line in f.readlines()]
+
+layer_names = net.getLayerNames()
+output_layers = [layer_names[i - 1] for i in net.getUnconnectedOutLayers().flatten()]
+
+# Set up video capture for webcam
+cap = cv2.VideoCapture(0)
+
 while True:
-    ret,frame=cap.read()
-    cv2.imshow('Video Capture',frame)
-    if cv2.waitKey(1)==ord('q'):
+    ret, frame = cap.read()
+    height, width, channels = frame.shape
+
+    # Prepare the image for YOLOv4
+    blob = cv2.dnn.blobFromImage(frame, 1/255.0, (416, 416), swapRB=True, crop=False)
+    net.setInput(blob)
+    
+    # Get YOLO output
+    outputs = net.forward(output_layers)
+    
+    # Initialize lists to store detected boxes, confidences, and class IDs
+    boxes = []
+    confidences = []
+    class_ids = []
+
+    for output in outputs:
+        for detection in output:
+            scores = detection[5:]
+            class_id = np.argmax(scores)
+            confidence = scores[class_id]
+            if confidence > 0.5:
+                # Object detected
+                center_x = int(detection[0] * width)
+                center_y = int(detection[1] * height)
+                w = int(detection[2] * width)
+                h = int(detection[3] * height)
+
+                # Calculate top-left corner of the box
+                x = int(center_x - w / 2)
+                y = int(center_y - h / 2)
+
+                boxes.append([x, y, w, h])
+                confidences.append(float(confidence))
+                class_ids.append(class_id)
+
+    # Apply Non-Max Suppression to eliminate redundant overlapping boxes
+    indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.4)
+
+    # Draw bounding boxes and labels on the image
+    if len(indexes) > 0:
+        for i in indexes.flatten():
+            x, y, w, h = boxes[i]
+            label = str(classes[class_ids[i]])
+            confidence = confidences[i]
+
+            color = (0, 255, 0)  # Green color for bounding boxes
+            cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
+            cv2.putText(frame, f"{label} {confidence:.2f}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+
+    # Show the image with detected objects
+    cv2.imshow("YOLOv4 Real-Time Object Detection", frame)
+
+    # Exit the loop if 'q' is pressed
+    if cv2.waitKey(1) & 0xFF == ord('q'):
         break
+
+# Release video capture and close windows
 cap.release()
 cv2.destroyAllWindows()
+
 ```
-## iii) Display the video by resizing the window
-```python
-import numpy as np
-import cv2
-cap=cv2.VideoCapture(0)
-while True:
-    ret,frame=cap.read()
-    width=int(cap.get(3))
-    height=int(cap.get(4))
-    image=np.zeros(frame.shape,np.uint8)
-    smaller_frame=cv2.resize(frame,(0,0),fx=0.5,fy=0.5)
-    image[:height//2, :width//2]=smaller_frame
-    image[height//2:, :width//2]=smaller_frame
-    image[:height//2, width//2:]=smaller_frame
-    image[height//2:, width//2:]=smaller_frame
-    cv2.imshow('Video Capture',image)
-    if cv2.waitKey(1)==ord('q'):
-        break
-cap.release()
-cv2.destroyAllWindows()
-```
-## iv) Rotate and display the video
-```python
-import numpy as np
-import cv2
-cap=cv2.VideoCapture(0)
-while True:
-    ret,frame=cap.read()
-    width=int(cap.get(3))
-    height=int(cap.get(4))
-    image=np.zeros(frame.shape,np.uint8)
-    smaller_frame=cv2.resize(frame,(0,0),fx=0.5,fy=0.5)
-    image[:height//2, :width//2]=cv2.rotate(smaller_frame,cv2.ROTATE_180)
-    image[height//2:, :width//2]=smaller_frame
-    image[:height//2, width//2:]=cv2.rotate(smaller_frame,cv2.ROTATE_180)
-    image[height//2:, width//2:]=smaller_frame
-    cv2.imshow('Video Capture',image)
-    if cv2.waitKey(1)==ord('q'):
-        break
-cap.release()
-cv2.destroyAllWindows()
-```
-## Output
 
-### i) Write the frame as JPG image
-</br>
+## Output :
 
-<img src ="https://github.com/Adhithyaram29D/Image_Acqusition-_using_Web_Camera/assets/119393540/4f7c834d-7ad8-4cc6-a9a8-62bec1d35d31" width="500">
+![Screenshot 2024-09-26 110550](https://github.com/user-attachments/assets/795fd505-bc18-4338-b664-66ef0a32c25e)
 
-</br>
-
-### ii) Display the video
-</br>
-
-<img src="https://github.com/Adhithyaram29D/Image_Acqusition-_using_Web_Camera/assets/119393540/d88c65d8-de94-47d4-a88d-10d890af6f2c" width="500">
-
-</br>
-
-### iii) Display the video by resizing the window
-</br>
-
-<img src="https://github.com/Adhithyaram29D/Image_Acqusition-_using_Web_Camera/assets/119393540/ae8a505b-18d6-4e77-9e63-da7f54a8f749" width="500">
-</br>
-
-### iv) Rotate and display the video
-<br>
-<img src="https://github.com/Adhithyaram29D/Image_Acqusition-_using_Web_Camera/assets/119393540/38c55213-3f90-4162-901d-0a88fdc5fb54" width="500">
-
-
-
-## Result:
-Thus the image is accessed from webcamera and displayed using openCV.
+## Result :
+Real time object detection is executed succesfully..
