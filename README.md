@@ -1,6 +1,6 @@
 # Real_Time_Object_Detection->
-### Reg no :212222240073
-### Name : Pradeepraj P
+### Reg no :212222240040
+### Name : Jeyabalan T
 ## Aim :
 Read and detect the object using yolov4(python)
 
@@ -87,7 +87,8 @@ cv2.destroyAllWindows()
 
 ## Output :
 
-![Screenshot 2024-09-26 110550](https://github.com/user-attachments/assets/795fd505-bc18-4338-b664-66ef0a32c25e)
+![WhatsApp Image 2024-09-26 at 11 42 03](https://github.com/user-attachments/assets/347de709-2c9c-4ee7-be52-0f53085aee51)
+
 
 ## Result :
 Real time object detection is executed succesfully..
